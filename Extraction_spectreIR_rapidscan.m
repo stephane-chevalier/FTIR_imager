@@ -18,7 +18,7 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = '../../../Stef/FTIR/2019-07-09/res4/poly_3mil/';
+path = '../../../Stef/FTIR/2019-07-09/res4/bkg/';
 
 
 % choix du ROI 
@@ -41,6 +41,11 @@ coef_apo = 15;
 
 %%-------------------- FIN PARAMETRES A MODIFIER --------------------------
 
+
+%% Définition de la bande spectrale
+f1 = 1./(l1*100)*1e6;
+f2 = 1./(l2*100)*1e6;
+nub0 = linspace(f2,f1,round((f1-f2)/4)+1)';
 
 %% Excution du chargement et de la FFT
 noms = ls([path,'/*.ptw']);
@@ -65,32 +70,25 @@ for j = 1:size(noms,1)
     disp('Exécution de la fft')
     [S,nub,inter_apo] = I2S(image3D,l{j},res,coef_apo);
     if j == 1
-        Smean = S;  %initilisation
-        nub0 = nub';
+        for i = 1:size(S,1) %interpol pour que les spectre aient la meme taille
+            for j = 1:size(S,2)
+                Smean(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); %initialisation
+            end
+        end        
     else 
-        if size(nub)~=size(nub0) %interpol pour queles spectre aient la meme taille
-            for i = 1:size(S,1)
-                for j = 1:size(S,2)
-                    Sinterp(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); 
-                end
+         %interpol pour que les spectre aient la meme taille
+        for i = 1:size(S,1)
+            for j = 1:size(S,2)
+                Sinterp(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); 
             end
         end
+        
         Smean = Smean + Sinterp; %calcul la moyenne des spectres
     end
     disp(' ')
     disp(' ')
 end
 Smean = Smean/j;
-
-
-
-
-%% Selection de la zone de fréquence d'intérêt
-f1 = 1./(l1*100)*1e6;
-f2 = 1./(l2*100)*1e6;
-f = find(nub0>f2 & nub0<f1);
-Smean = Smean(:,:,f); % on se limite à la vision caméra;
-nub = nub0(f);
 
 
 
@@ -142,7 +140,7 @@ title('Apodization')
 subplot(2,3,6)
 set(gca, 'Xdir', 'reverse','Xscale','log');
 hold on
-plot(nub,squeeze(Smean(px(2),px(1),:)));xlim([1500 5000])
+plot(nub0,squeeze(Smean(px(2),px(1),:)));xlim([1500 5000])
 grid on
 xlabel('Nombre d''onde en cm-1')
 ylabel('Intensité en DL/cm-1')
