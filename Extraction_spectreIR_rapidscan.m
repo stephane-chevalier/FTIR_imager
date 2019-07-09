@@ -45,7 +45,7 @@ coef_apo = 15;
 %% Définition de la bande spectrale
 f1 = 1./(l1*100)*1e6;
 f2 = 1./(l2*100)*1e6;
-nub0 = linspace(f2,f1,round((f1-f2)/4)+1)';
+nub0 = linspace(f2,f1,round((f1-f2)/res)+1)';
 
 %% Excution du chargement et de la FFT
 noms = ls([path,'/*.ptw']);
