@@ -18,22 +18,22 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = '../moyen/';
+path = '../../../Stef/FTIR/2019-07-09/res4/poly_3mil/';
 
 
 % choix du ROI 
-x = 70:140;
-y = 14:100;
+x = 10:100;
+y = 10:70;
 
 % Spec de la caméra + objectif
 l1 = 2; % um longeur d'onde de début de la caméra
 l2 = 6.67; % um longeur d'onde de fin de la caméra
-TI = 280; %temps d'intégration caméra en us
-f_acq = 870; %frequence acquisition de la caméra (Hz)
+TI = 100; %temps d'intégration caméra en us
+f_acq = 1300; %frequence acquisition de la caméra (Hz)
 
 
 % Spec FTIR
-v = 0.04747; % vitesse du miroir en cm/s
+v = 0.1581; % vitesse du miroir en cm/s
 res = 4; %resolution programmée dans OMNIC en cm-1
 
 % Valeur de l'apodization (0 si pas d'apodization sinon entre 10 et 15).
@@ -55,19 +55,27 @@ for j = 1:size(noms,1)
     dl = v/f_acq;
     if length(size(image3D)) == 3
         ZPD = find(image3D(1,1,:)==max(image3D(1,1,:)),1); % trouve le ZPD
-        l = ([1:size(image3D,3)]'-ZPD)*dl;
+        l{j} = ([1:size(image3D,3)]'-ZPD)*dl;
     else
         ZPD = find(image3D==max(image3D,1)); % trouve le ZPD
-        l = ([1:size(image3D,1)]'-ZPD)*dl;
+        l{j} = ([1:size(image3D,1)]'-ZPD)*dl;
     end
         
     % exécution de la fft
     disp('Exécution de la fft')
-    [S,nub,inter_apo] = I2S(image3D,l,res,coef_apo);
+    [S,nub,inter_apo] = I2S(image3D,l{j},res,coef_apo);
     if j == 1
         Smean = S;  %initilisation
+        nub0 = nub';
     else 
-        Smean = Smean + S; %calcul la moyenne des spectres
+        if size(nub)~=size(nub0) %interpol pour queles spectre aient la meme taille
+            for i = 1:size(S,1)
+                for j = 1:size(S,2)
+                    Sinterp(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); 
+                end
+            end
+        end
+        Smean = Smean + Sinterp; %calcul la moyenne des spectres
     end
     disp(' ')
     disp(' ')
@@ -80,9 +88,9 @@ Smean = Smean/j;
 %% Selection de la zone de fréquence d'intérêt
 f1 = 1./(l1*100)*1e6;
 f2 = 1./(l2*100)*1e6;
-f = find(nub>f2 & nub<f1);
+f = find(nub0>f2 & nub0<f1);
 Smean = Smean(:,:,f); % on se limite à la vision caméra;
-nub = nub(f);
+nub = nub0(f);
 
 
 
@@ -118,7 +126,7 @@ subplot(2,3,4)
 hold on
 for j = 1:size(noms,1)
     imageplot = interfero{j};
-    plot(l,squeeze(imageplot(px(2),px(1),:)))
+    plot(l{j},squeeze(imageplot(px(2),px(1),:)))
 end
 hold off
 xlabel('position miroir en cm')
@@ -126,7 +134,7 @@ ylabel('Intensité en DL')
 title('interfero')
 
 subplot(2,3,5)
-plot(l,squeeze(inter_apo))
+plot(l{end},squeeze(inter_apo))
 xlabel('position miroir en cm')
 ylabel('Intensité en DL')
 title('Apodization')
@@ -147,22 +155,26 @@ data.ROI_x=x;
 data.ROI_y=y;
 data.TI=TI;
 data.coef_apo=coef_apo;
-data.position_miroir=l;
 data.filename=noms;
 data.v_miroir=v;
 data.f_acq=f_acq;
 data.resolution=res;
-data.interogrammes=interfero;
+data.nub = nub0;
+
+inter = struct;
+inter.interogrammes=interfero;
+inter.position_miroir = l;
 
 
-%%
+
 disp('Saving....')
 
 mkdir([path,'pt'])
-save([path,'pt/data.mat'],'data')
+save([path,'pt/data.mat'],'-struct','data')
+save([path,'pt/interferos.mat'],'-struct','inter')
 save2pdf([path,'pt/figure.pdf'],gcf,300)
     
-disp('Fin du traitement des interéfos')
+disp('Fin du traitement des interféros')
 
 
 

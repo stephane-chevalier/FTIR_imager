@@ -9,11 +9,11 @@ function [image3D,temps,fullimage] = chargement_PTW(nom,x,y)
 
 
     
-    if ~isfile(nom)
+    if isempty(nom)
      disp('Le fichier n''existe pas,, vérifier le nom')
      return
     end
-     
+    
     
     disp(['Chargement de ',nom,' en cours'])
     [t0,~,fileinfo] = GetPTWFrame(nom,1);
