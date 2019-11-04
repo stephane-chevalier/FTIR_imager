@@ -18,7 +18,7 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = '../../../Stef/FTIR/2019-07-09/res4/bkg/';
+path = '../data_pour_exemple/res4/poly_1_5mil/';
 
 
 % choix du ROI 
@@ -31,69 +31,70 @@ l2 = 6.67; % um longeur d'onde de fin de la caméra
 TI = 100; %temps d'intégration caméra en us
 f_acq = 1300; %frequence acquisition de la caméra (Hz)
 
-
 % Spec FTIR
 v = 0.1581; % vitesse du miroir en cm/s
 res = 4; %resolution programmée dans OMNIC en cm-1
 
-% Valeur de l'apodization (0 si pas d'apodization sinon entre 10 et 15).
-coef_apo = 15;
+% Valeur de l'apodization (0 si pas d'apodization sinon entre 3 et 7).
+coef_apo = 5;
 
 %%-------------------- FIN PARAMETRES A MODIFIER --------------------------
 
 
-%% Définition de la bande spectrale
-f1 = 1./(l1*100)*1e6;
+%% Définition de la bande spectrale utile
+if f_acq/v/2 < 1./(l1*100)*1e6 %compare the wavelength of the camera to the max wavelength that can be obtained from the cam frame rate
+    f1 = f_acq/v/2;
+else
+    f1 = 1./(l1*100)*1e6;
+end
+
 f2 = 1./(l2*100)*1e6;
 nub0 = linspace(f2,f1,round((f1-f2)/res)+1)';
 
 %% Excution du chargement et de la FFT
 noms = ls([path,'/*.ptw']);
 
-
-for j = 1:size(noms,1)
+for n = 1:size(noms,1)
     % chargement image
-    [image3D,temps,fullimage] = chargement_PTW([path,noms(j,:)],x,y);
-    interfero(j) = {image3D};
+    [image3D,temps,fullimage] = chargement_PTW([path,noms(n,:)],x,y);    
     
     % construction du vecteur position
     dl = v/f_acq;
-    if length(size(image3D)) == 3
-        ZPD = find(image3D(1,1,:)==max(image3D(1,1,:)),1); % trouve le ZPD
-        l{j} = ([1:size(image3D,3)]'-ZPD)*dl;
-    else
-        ZPD = find(image3D==max(image3D,1)); % trouve le ZPD
-        l{j} = ([1:size(image3D,1)]'-ZPD)*dl;
-    end
-        
+    ZPD = find(image3D(1,1,:) == max(image3D(1,1,:)),1); % trouve le ZPD
+    m_pos = ([1:size(image3D,3)]'-ZPD)*dl; % build the position vector for all the images   
+    
+    % On ne prend que les images situées entre -1/res et 1/res
+    image3D = image3D(:,:,m_pos<1/res & m_pos>-1/res);
+    interfero(n) = {image3D};
+    l{n} = linspace(-1/res,1/res,2*f_acq/res/v)'; % vector position for only the images between -1/res and 1/res
+    
     % exécution de la fft
     disp('Exécution de la fft')
-    [S,nub,inter_apo] = I2S(image3D,l{j},res,coef_apo);
-    if j == 1
-        for i = 1:size(S,1) %interpol pour que les spectre aient la meme taille
-            for j = 1:size(S,2)
-                Smean(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); %initialisation
-            end
-        end        
-    else 
-         %interpol pour que les spectre aient la meme taille
-        for i = 1:size(S,1)
-            for j = 1:size(S,2)
-                Sinterp(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); 
-            end
-        end
+    [S,nub,inter_apo] = I2S(image3D,l{n},res,coef_apo);
         
-        Smean = Smean + Sinterp; %calcul la moyenne des spectres
+    %interpole sur la bande spectrale utile
+    for i = 1:size(S,1)
+        for j = 1:size(S,2)
+            Stemp(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); 
+        end
     end
+    Sinterp{n} = Stemp;
     disp(' ')
     disp(' ')
 end
-Smean = Smean/j;
+
+
+%% compute the mean multispectral image
+Smean = zeros(size(S,1),size(S,2),size(nub0,1));
+for n = 1:3
+    Smean = Smean+Sinterp{n}/size(noms,1);
+end
 
 
 
 %% Affichage
-freq = 1000; % indice de la fréquence
+px = [52 26]; % choix du pixel
+freq = round(length(nub0))/2; % indice de la fréquence
 
 figure(1)
 clf
@@ -113,18 +114,20 @@ title('Intensité en DL (ROI)')
 daspect([1 1 1])
 
 subplot(2,3,3)
-imagesc(S(:,:,freq))
-title(['Fréquence : ',num2str(nub(freq)),' cm-1'])
+imagesc(Smean(:,:,freq))
+hold on
+plot(px(1),px(2),'sk')
+title(['Fréquence : ',num2str(nub0(freq)),' cm-1'])
 daspect([1 1 1])
 colorbar
 
 
-px = [1 1]; % choix du pixel
+
 subplot(2,3,4)
 hold on
-for j = 1:size(noms,1)
-    imageplot = interfero{j};
-    plot(l{j},squeeze(imageplot(px(2),px(1),:)))
+for n = 1:size(noms,1)
+    imageplot = interfero{n};
+    plot(l{n},squeeze(imageplot(px(2),px(1),:)))
 end
 hold off
 xlabel('position miroir en cm')
@@ -140,7 +143,8 @@ title('Apodization')
 subplot(2,3,6)
 set(gca, 'Xdir', 'reverse','Xscale','log');
 hold on
-plot(nub0,squeeze(Smean(px(2),px(1),:)));xlim([1500 5000])
+plot(nub0,squeeze(Smean(px(2),px(1),:)));xlim([1500 4000])
+%plot(nub0,squeeze(mean(mean(Smean))));xlim([1500 4000])
 grid on
 xlabel('Nombre d''onde en cm-1')
 ylabel('Intensité en DL/cm-1')

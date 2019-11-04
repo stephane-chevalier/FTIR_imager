@@ -10,18 +10,15 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a)
     % a : paramètre d'appodization (a = 0 si pas d'appodization, a = 10-15
     % sinon)
 
-    sizes = size(inter); %taille de la matrice
-    dl = l(2)-l(1);
+    sizes = size(inter); %taille de la matrice    
+    Ni = sizes(2);
+    Nj = sizes(1);
     
-    if  length(sizes) == 3
-        Ni = sizes(2);
-        Nj = sizes(1);
-        sigma = a/10000*sizes(3);
-    else
-        Ni = 1;
-        Nj= 1;
-        sigma = a/10000*sizes(1);
-    end
+    % coef apodization
+    sigma = a*sizes(3)/4113;
+    
+    % distance between two frames
+    dl = l(2)-l(1);
     
     for i = 1:Ni
         if ~isempty(find(i == 1:round(Ni/9):Ni))
