@@ -18,22 +18,22 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = '../data_pour_exemple/res4/poly_1_5mil/';
+path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\01_uFluidic_acide_base\Mesures_Reaction\NaOH_HCl\mesures\Q_20uL/';
 
 
 % choix du ROI 
-x = 10:100;
-y = 10:70;
+x = 10:150;
+y = 10:41;
 
 % Spec de la caméra + objectif
 l1 = 2; % um longeur d'onde de début de la caméra
 l2 = 6.67; % um longeur d'onde de fin de la caméra
-TI = 100; %temps d'intégration caméra en us
-f_acq = 1300; %frequence acquisition de la caméra (Hz)
+TI = 700; %temps d'intégration caméra en us
+f_acq = 510; %frequence acquisition de la caméra (Hz)
 
 % Spec FTIR
-v = 0.1581; % vitesse du miroir en cm/s
-res = 4; %resolution programmée dans OMNIC en cm-1
+v = 0.0633; % vitesse du miroir en cm/s
+res = 16; %resolution programmée dans OMNIC en cm-1
 
 % Valeur de l'apodization (0 si pas d'apodization sinon entre 3 et 7).
 coef_apo = 5;
@@ -94,7 +94,7 @@ end
 
 %% Affichage
 px = [52 26]; % choix du pixel
-freq = round(length(nub0))/2; % indice de la fréquence
+freq = round(length(nub0)/2); % indice de la fréquence
 
 figure(1)
 clf
