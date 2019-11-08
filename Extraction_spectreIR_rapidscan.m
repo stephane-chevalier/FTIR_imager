@@ -6,9 +6,9 @@
 %                           S. CHEVALIER 
 %
 %                          (UMR CNRS-I2M 5295)
-%                              09/07/2019
+%                              08/11/2019
 %
-%                             VERSION 2.0
+%                             VERSION 2.2
 %-------------------------------------------------------------------------%
 
 
@@ -18,38 +18,29 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\01_uFluidic_acide_base\Mesures_Reaction\NaOH_HCl\mesures\Q_20uL/';
-
+path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\02_Note_technique_FTIR\data\2019-11-06\polystyrene\res32\bkg/';
 
 % choix du ROI 
-x = 10:150;
-y = 10:41;
+x = 10:70;
+y = 10:70;
 
 % Spec de la caméra + objectif
-l1 = 2; % um longeur d'onde de début de la caméra
-l2 = 6.67; % um longeur d'onde de fin de la caméra
-TI = 700; %temps d'intégration caméra en us
-f_acq = 510; %frequence acquisition de la caméra (Hz)
+TI = 200; %temps d'intégration caméra en us
+f_acq = 1300; %frequence acquisition de la caméra (Hz)
+lmax = 6.67; % um longeur d'onde max de la caméra
 
 % Spec FTIR
-v = 0.0633; % vitesse du miroir en cm/s
-res = 16; %resolution programmée dans OMNIC en cm-1
+v = 0.1581; % vitesse du miroir en cm/s
+res = 32; %resolution programmée dans OMNIC en cm-1
 
 % Valeur de l'apodization (0 si pas d'apodization sinon entre 3 et 7).
-coef_apo = 5;
+coef_apo = 10;
 
-%%-------------------- FIN PARAMETRES A MODIFIER --------------------------
+%% -------------------- FIN PARAMETRES A MODIFIER --------------------------
 
+% plus grande longueur d'onde (ou plus petite fréquence) que la caméra peut voir
+fmin = 1./(lmax*100)*1e6;
 
-%% Définition de la bande spectrale utile
-if f_acq/v/2 < 1./(l1*100)*1e6 %compare the wavelength of the camera to the max wavelength that can be obtained from the cam frame rate
-    f1 = f_acq/v/2;
-else
-    f1 = 1./(l1*100)*1e6;
-end
-
-f2 = 1./(l2*100)*1e6;
-nub0 = linspace(f2,f1,round((f1-f2)/res)+1)';
 
 %% Excution du chargement et de la FFT
 noms = ls([path,'/*.ptw']);
@@ -64,33 +55,35 @@ for n = 1:size(noms,1)
     m_pos = ([1:size(image3D,3)]'-ZPD)*dl; % build the position vector for all the images   
     
     % On ne prend que les images situées entre -1/res et 1/res
-    image3D = image3D(:,:,m_pos<1/res & m_pos>-1/res);
-    interfero(n) = {image3D};
-    l{n} = linspace(-1/res,1/res,2*f_acq/res/v)'; % vector position for only the images between -1/res and 1/res
+    if ~isempty(find(m_pos>1/res,1)) && ~isempty(find(m_pos<-1/res,1)) % vérifie que la mesure s'est bien déroulée
+        image3D = image3D(:,:,m_pos<1/res & m_pos>-1/res);
+        interfero(n) = {image3D};
+        l = linspace(-1/res,1/res,size(image3D,3))'; % position vector for only the images between -1/res and 1/res
+    else
+        disp('Problème d''alignement du laser du FTIR, refaire la manip')
+        return
+    end
     
     % exécution de la fft
     disp('Exécution de la fft')
-    [S,nub,inter_apo] = I2S(image3D,l{n},res,coef_apo);
+    [S,nub,inter_apo] = I2S(image3D,l,res,coef_apo);
         
-    %interpole sur la bande spectrale utile
-    for i = 1:size(S,1)
-        for j = 1:size(S,2)
-            Stemp(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); 
-        end
-    end
-    Sinterp{n} = Stemp;
+    % on ne garde que la bande spectrale utile entre f2 et f1
+    Sutile{n} = S(:,:,nub>fmin);   
+    
+    
     disp(' ')
     disp(' ')
+    
 end
+nub0 = nub(nub>fmin)'; % on prend les fréquences sur la bande spectrale utile
 
 
 %% compute the mean multispectral image
 Smean = zeros(size(S,1),size(S,2),size(nub0,1));
-for n = 1:3
-    Smean = Smean+Sinterp{n}/size(noms,1);
+for n = 1:size(noms,1)
+    Smean = Smean+Sutile{n}/size(noms,1);
 end
-
-
 
 %% Affichage
 px = [52 26]; % choix du pixel
@@ -127,7 +120,7 @@ subplot(2,3,4)
 hold on
 for n = 1:size(noms,1)
     imageplot = interfero{n};
-    plot(l{n},squeeze(imageplot(px(2),px(1),:)))
+    plot(l,squeeze(imageplot(px(2),px(1),:)))
 end
 hold off
 xlabel('position miroir en cm')
@@ -135,7 +128,7 @@ ylabel('Intensité en DL')
 title('interfero')
 
 subplot(2,3,5)
-plot(l{end},squeeze(inter_apo))
+plot(l,squeeze(inter_apo))
 xlabel('position miroir en cm')
 ylabel('Intensité en DL')
 title('Apodization')

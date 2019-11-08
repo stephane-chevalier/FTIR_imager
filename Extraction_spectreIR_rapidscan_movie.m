@@ -19,39 +19,29 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\02_Note_technique_FTIR\data\2019-11-06\parafine\solidification_1\res32\test2/';
-%path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\02_Note_technique_FTIR\data\2019-11-06\parafine\bkg\res32/';
-
+path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\02_Note_technique_FTIR\data\2019-11-07\paraffine\solidification\res16/';
 
 % choix du ROI 
-x = 10:70;
-y = 10:70;
+x = 1:48;
+y = 1:60;
 
 % Spec de la caméra + objectif
-l1 = 2; % um longeur d'onde de début de la caméra
-l2 = 6.67; % um longeur d'onde de fin de la caméra
 TI = 400; %temps d'intégration caméra en us
-f_acq = 1300; %frequence acquisition de la caméra (Hz)
+f_acq = 1893; %frequence acquisition de la caméra (Hz)
+lmax = 6.67; % um longeur d'onde de fin de la caméra
 
 % Spec FTIR
-v = 0.1581; % vitesse du miroir en cm/s
-res = 32; %resolution programmée dans OMNIC en cm-1
+v = 0.3165; % vitesse du miroir en cm/s
+res = 16; %resolution programmée dans OMNIC en cm-1
 
 % Valeur de l'apodization (0 si pas d'apodization sinon entre 3 et 7).
-coef_apo = 20;
+coef_apo = 10;
 
-%%-------------------- FIN PARAMETRES A MODIFIER --------------------------
+%% -------------------- FIN PARAMETRES A MODIFIER --------------------------
 
+% plus grande longueur d'onde (ou plus petite fréquence) que la caméra peut voir
+fmin = 1./(lmax*100)*1e6;
 
-%% Définition de la bande spectrale utile
-if f_acq/v/2 < 1./(l1*100)*1e6 %compare the wavelength of the camera to the max wavelength that can be obtained from the cam frame rate
-    f1 = f_acq/v/2;
-else
-    f1 = 1./(l1*100)*1e6;
-end
-
-f2 = 1./(l2*100)*1e6;
-nub0 = linspace(f2,f1,round((f1-f2)/res)+1)';
 
 %% Excution du chargement et de la FFT
 % chargement image
@@ -69,42 +59,38 @@ for n = 1:size(image3Dcut,2)
     m_pos = ([1:size(image3D,3)]'-ZPD)*dl; % build the position vector for all the images   
     
     % On ne prend que les images situées entre -1/res et 1/res
-    image3D = image3D(:,:,m_pos<1/res & m_pos>-1/res);
-    interfero(n) = {image3D};
-    l = linspace(-1/res,1/res,2*f_acq/res/v)'; % vector position for only the images between -1/res and 1/res
-    t_temp = temps_cut{n};
-    temps(:,n) = t_temp(m_pos<1/res & m_pos>-1/res);
+    if ~isempty(find(m_pos>1/res,1)) && ~isempty(find(m_pos<-1/res,1)) % vérifie que la mesure s'est bien déroulée
+        image3D = image3D(:,:,m_pos<1/res & m_pos>-1/res);
+        interfero(n) = {image3D};
+        l = linspace(-1/res,1/res,size(image3D,3))'; % position vector for only the images between -1/res and 1/res
+        t_temp = temps_cut{n}; %variable temporaire
+        temps(:,n) = t_temp(m_pos<1/res & m_pos>-1/res);
+    else
+        disp('Problème d''alignement du laser du FTIR, refaire la manip')
+        return
+    end
     
     % exécution de la fft
     disp(['Exécution de la fft n°',num2str(n),' sur ',num2str(size(image3Dcut,2))])
     [S,nub,inter_apo{n}] = I2S(image3D,l,res,coef_apo);
         
-    %interpole sur la bande spectrale utile
-    for i = 1:size(S,1)
-        for j = 1:size(S,2)
-            Stemp(i,j,:) = interp1(nub,squeeze(S(i,j,:)),nub0); 
-        end
-    end
-    Sinterp{n} = Stemp;
+    % on ne garde que la bande spectrale utile entre f2 et f1
+    Sutile{n} = S(:,:,nub>fmin);
+    
+    
     disp(' ')
     disp(' ')
 end
 
-
-% %% compute the mean multispectral image
-% Smean = zeros(size(S,1),size(S,2),size(nub0,1));
-% for n = 1:3
-%     Smean = Smean+Sinterp{n}/size(noms,1);
-% end
-
+nub0 = nub(nub>fmin)'; % on prend les fréquences sur la bande spectrale utile
 
 
 %% Affichage
-px = [40 40]; % choix du pixel
+px = [20 20]; % choix du pixel
 freq = round(length(nub0)/2); % indice de la fréquence
 choix_spectre = 3;
 
-Smean = Sinterp{choix_spectre};
+Smean = Sutile{choix_spectre};
 image3D = image3Dcut{choix_spectre};
 
 figure(1)
@@ -163,7 +149,7 @@ title(['Affichage du spectre n°',num2str(choix_spectre),' sur ',num2str(size(ima
 
 %% Sauvegarde
 data = struct;
-data.Spectre =Sinterp;
+data.Spectre = Sutile;
 data.ROI_x=x;
 data.ROI_y=y;
 data.TI=TI;
