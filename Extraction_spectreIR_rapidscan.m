@@ -18,23 +18,27 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\02_Note_technique_FTIR\data\2019-11-06\polystyrene\res32\bkg/';
+path = 'E:\2019-11-18\res2\bkg/';
 
 % choix du ROI 
-x = 10:70;
-y = 10:70;
+x = 40:120;
+y = 40:70;
 
 % Spec de la caméra + objectif
-TI = 200; %temps d'intégration caméra en us
-f_acq = 1300; %frequence acquisition de la caméra (Hz)
-lmax = 6.67; % um longeur d'onde max de la caméra
+TI = 250; %temps d'intégration caméra en us
+f_acq = 600; %frequence acquisition de la caméra (Hz)
+lmax = 5.87; % um longeur d'onde max de la caméra
 
 % Spec FTIR
-v = 0.1581; % vitesse du miroir en cm/s
-res = 32; %resolution programmée dans OMNIC en cm-1
+v = 0.0633; % vitesse du miroir en cm/s
+res = 5; %resolution programmée dans OMNIC en cm-1
 
 % Valeur de l'apodization (0 si pas d'apodization sinon entre 3 et 7).
 coef_apo = 10;
+
+% 1 si on souhaite enlever la thermique
+% 0 sinon
+therm = 1;
 
 %% -------------------- FIN PARAMETRES A MODIFIER --------------------------
 
@@ -48,6 +52,11 @@ noms = ls([path,'/*.ptw']);
 for n = 1:size(noms,1)
     % chargement image
     [image3D,temps,fullimage] = chargement_PTW([path,noms(n,:)],x,y);    
+    
+    if therm == 1 % on enlève la thermique ici
+        im_therm = mean(image3D(:,:,end-50:end),3);
+        image3D = image3D - im_therm;
+    end
     
     % construction du vecteur position
     dl = v/f_acq;
@@ -86,7 +95,7 @@ for n = 1:size(noms,1)
 end
 
 %% Affichage
-px = [52 26]; % choix du pixel
+px = [25 25]; % choix du pixel
 freq = round(length(nub0)/2); % indice de la fréquence
 
 figure(1)
@@ -136,7 +145,7 @@ title('Apodization')
 subplot(2,3,6)
 set(gca, 'Xdir', 'reverse','Xscale','log');
 hold on
-plot(nub0,squeeze(Smean(px(2),px(1),:)));xlim([1500 4000])
+plot(nub0,squeeze(Smean(px(2),px(1),:)),'r');xlim([1500 4000])
 %plot(nub0,squeeze(mean(mean(Smean))));xlim([1500 4000])
 grid on
 xlabel('Nombre d''onde en cm-1')
