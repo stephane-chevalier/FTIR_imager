@@ -16,24 +16,26 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a)
     Nk = sizes(3);
     
     % coef apodization
-    sigma = a*Nk/4113; %4113 est une valeur de référence pour res = 4 cm-1
+    sigma = a*Nk/4111; %4111 est une valeur de référence pour res = 4 cm-1
+    f_apo = exp(-(sigma*(l)*res).^2);
     
     % distance between two frames
     dl = l(2)-l(1);   
 
     % On reshape pour gagner en temps de calcul    
     inter_reshaped = reshape(inter,Ni*Nj,Nk);
-    S_reshaped = zeros(Ni*Nj,(Nk-1)/2);
+        
+    % compute the fft with the phase correction based on Mertz methods
+    S_reshaped = fft_with_Mertz(inter_reshaped,f_apo,Ni,Nj);
     
-    % execution de la fft
-    for j = 1:Nj*Ni    
-        [S_reshaped(j,:),~,nub] = mpfft(inter_reshaped(j,:).*exp(-(sigma*(l)*res).^2)',l); % FFT
-    end
+    % build the frequency vector
+    nub = linspace(0,1/dl,length(l));
+    nub(round(length(nub)/2):length(nub))=[];  
     
     disp('Calcul fft terminé')
     
     if nargout == 3
-        inter_apo = inter_reshaped(Ni*Nj,:)'.*exp(-(sigma*(l)*res).^2);
+        inter_apo = inter_reshaped(Ni*Nj,:)'.*f_apo;%exp(-(sigma*(l)*res).^2);
     end
     S = reshape(S_reshaped,Nj,Ni,size(S_reshaped,2));
 end
