@@ -39,7 +39,7 @@ function [image3D,temps,fullimage] = chargement_PTW(nom,x,y)
     end
     
     if nargout == 3 %renvoi l'image entière
-       fullimage = temp0;
+       [~,fullimage,~] = GetPTWFrame(nom,round(ii/2));
     end
     
 end
