@@ -19,23 +19,28 @@ clc
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
 
 % chemin du dossier où sont les fichiers ptw
-path = 'D:\Documents\01_Recherche\02_Publications\03_En_cours\02_Note_technique_FTIR\data\2019-11-07\paraffine\solidification\res16/';
+path = 'G:\Stef\FTIR\2019-11-21\solidification2\data3/';
 
 % choix du ROI 
-x = 1:48;
-y = 1:60;
+x = 40:130;
+y = 10:100;
 
 % Spec de la caméra + objectif
-TI = 400; %temps d'intégration caméra en us
-f_acq = 1893; %frequence acquisition de la caméra (Hz)
-lmax = 6.67; % um longeur d'onde de fin de la caméra
+TI = 170; %temps d'intégration caméra en us
+f_acq = 507; %frequence acquisition de la caméra (Hz)
+lmax = 5.87; % um longeur d'onde de fin de la caméra
 
 % Spec FTIR
-v = 0.3165; % vitesse du miroir en cm/s
-res = 16; %resolution programmée dans OMNIC en cm-1
+v = 0.0633; % vitesse du miroir en cm/s
+res = 5; %resolution programmée dans OMNIC en cm-1
 
 % Valeur de l'apodization (0 si pas d'apodization sinon entre 3 et 7).
-coef_apo = 10;
+coef_apo = 5;
+
+% 1 si on souhaite enlever la thermique
+% 0 sinon
+therm = 1;
+
 
 %% -------------------- FIN PARAMETRES A MODIFIER --------------------------
 
@@ -49,9 +54,14 @@ noms = ls([path,'/*.ptw']);
 [image3Dcut,temps_cut,fullimage] = chargement_PTW_movie([path,noms],x,y);
 
 
-for n = 1:size(image3Dcut,2)    
+for n = 1:size(image3Dcut,2)
     
     image3D = image3Dcut{n};
+    
+    if therm == 1 % on enlève la thermique ici
+        im_therm(:,:,n) = mean(image3D(:,:,end-50:end),3);
+        image3D = image3D - im_therm(:,:,n);
+    end
     
     % construction du vecteur position
     dl = v/f_acq;
@@ -86,7 +96,7 @@ nub0 = nub(nub>fmin)'; % on prend les fréquences sur la bande spectrale utile
 
 
 %% Affichage
-px = [20 20]; % choix du pixel
+px = [40 40]; % choix du pixel
 freq = round(length(nub0)/2); % indice de la fréquence
 choix_spectre = 3;
 
@@ -140,8 +150,13 @@ title(['Affichage de l''interférogramme apodisé n°',num2str(choix_spectre),' sur
 subplot(2,3,6)
 set(gca, 'Xdir', 'reverse','Xscale','log');
 hold on
-plot(nub0,squeeze(Smean(px(2),px(1),:)));xlim([1500 4000])
+%plot(nub0,squeeze(Smean(px(2),px(1),:)));
 %plot(nub0,squeeze(mean(mean(Smean))));xlim([1500 4000])
+for n = 1:size(image3Dcut,2)
+    imageplot = Sutile{n};
+    plot(nub0,squeeze(mean(mean(imageplot(30:40,30:40,:)))))
+end
+xlim([1500 4000])
 grid on
 xlabel('Nombre d''onde en cm-1')
 ylabel('Intensité en DL/cm-1')
@@ -159,6 +174,11 @@ data.v_miroir=v;
 data.f_acq=f_acq;
 data.resolution=res;
 data.nub = nub0;
+data.temps = temps;
+
+if therm == 1 % on enlève la thermique ici
+    data.im_therm = im_therm;
+end
 
 inter = struct;
 inter.interferogrammes = interfero;
@@ -175,8 +195,4 @@ save([path,'pt/interferos.mat'],'-struct','inter')
 save2pdf([path,'pt/figure.pdf'],gcf,300)
     
 disp('Fin du traitement des interféros')
-
-
-
-
 

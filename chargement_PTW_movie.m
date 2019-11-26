@@ -23,7 +23,7 @@ function [image3D_cut,temps_cut,fullimage] = chargement_PTW_movie(nom,x,y)
         [t_temp,temp0,~] = GetPTWFrame(nom,ii);        
         
         if nargout > 1
-            temps(ii,1) = t_temp-t0; % temps lu dans les images            
+            temps(ii,1) = t_temp; % temps lu dans les images            
         end
         
         if ~isempty(find(ii == 1:round(N/9):N))
@@ -42,7 +42,7 @@ function [image3D_cut,temps_cut,fullimage] = chargement_PTW_movie(nom,x,y)
     end
     
     %% cut the movie to extract each spectrum
-    id = find(diff(temps)>0.2);
+    id = find(diff(temps)>5);
     id = [1;id;length(temps)];
     for jj = 1:length(id)-1
         image3D_cut{jj} = image3D(:,:,id(jj):id(jj+1));
