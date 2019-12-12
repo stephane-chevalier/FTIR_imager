@@ -16,26 +16,27 @@ clear all
 clc
 
 %%-------------------- PARAMETRES A MODIFIER ------------------------------
-
+%%
 % chemin du dossier où sont les fichiers ptw
-path = 'E:\2019-11-18\res2\bkg/';
+path = 'E:\flamme\';
 
 % choix du ROI 
-x = 40:120;
-y = 40:70;
+x = 1:320;
+y = 1:256;
 
 % Spec de la caméra + objectif
-TI = 250; %temps d'intégration caméra en us
-f_acq = 600; %frequence acquisition de la caméra (Hz)
-lmax = 5.87; % um longeur d'onde max de la caméra
+TI = 200; %temps d'intégration caméra en us
+f_acq = 200; %frequence acquisition de la caméra (Hz)
+lmax = 12; % um longeur d'onde max de la caméra
 
 % Spec FTIR
 v = 0.0633; % vitesse du miroir en cm/s
 res = 5; %resolution programmée dans OMNIC en cm-1
 
 % Valeur de l'apodization (0 si pas d'apodization sinon entre 3 et 7).
-coef_apo = 10;
+coef_apo = 7;
 
+% Soutraction de la thermique
 % 1 si on souhaite enlever la thermique
 % 0 sinon
 therm = 1;
@@ -60,7 +61,8 @@ for n = 1:size(noms,1)
     
     % construction du vecteur position
     dl = v/f_acq;
-    ZPD = find(image3D(1,1,:) == max(image3D(1,1,:)),1); % trouve le ZPD
+    pos = [round(length(x)/2) round(length(y)/2)]; % position du pixel central pour trouver le ZPD
+    ZPD = find(image3D(pos(2),pos(1),:) == max(image3D(pos(2),pos(1),:)),1); % trouve le ZPD
     m_pos = ([1:size(image3D,3)]'-ZPD)*dl; % build the position vector for all the images   
     
     % On ne prend que les images situées entre -1/res et 1/res
@@ -95,7 +97,7 @@ for n = 1:size(noms,1)
 end
 
 %% Affichage
-px = [25 25]; % choix du pixel
+px = [150 150]; % choix du pixel
 freq = round(length(nub0)/2); % indice de la fréquence
 
 figure(1)
@@ -145,8 +147,8 @@ title('Apodization')
 subplot(2,3,6)
 set(gca, 'Xdir', 'reverse','Xscale','log');
 hold on
-plot(nub0,squeeze(Smean(px(2),px(1),:)),'r');xlim([1500 4000])
-%plot(nub0,squeeze(mean(mean(Smean))));xlim([1500 4000])
+plot(nub0,squeeze(Smean(px(2),px(1),:)),'r');%xlim([1500 4000])
+%plot(nub0,squeeze(mean(mean(Smean))));%xlim([1500 4000])
 grid on
 xlabel('Nombre d''onde en cm-1')
 ylabel('Intensité en DL/cm-1')
@@ -164,11 +166,14 @@ data.v_miroir=v;
 data.f_acq=f_acq;
 data.resolution=res;
 data.nub = nub0;
+if therm == 1 % on enregistre uniquement si on a soustrait la themique
+    data.im_therm = im_therm;
+end
+
 
 inter = struct;
 inter.interogrammes=interfero;
 inter.position_miroir = l;
-
 
 
 disp('Saving....')
