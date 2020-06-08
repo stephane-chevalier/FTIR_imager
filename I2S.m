@@ -1,4 +1,4 @@
-function [S,nub,inter_apo] = I2S(inter,l,res,a)
+function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     % [S,nub] = I2S(inter,l,res,a)
     % Transforme l'intéro en spectre avec une appodization de type
     % gaussienne : exp(-(sigma*(l)*res).^2)
@@ -9,15 +9,17 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a)
     % res : résolution
     % a : paramètre d'appodization (a = 0 si pas d'appodization, a = 10-15
     % sinon)
-
-    sizes = size(inter); %taille de la matrice    
+    % S : spectrum in the inetresting band (low frequencies are left over)
+    disp('Exécution de la fft avec appodisation')
+    
+    sizes = size(inter); % taille de la matrice    
     Ni = sizes(2);
     Nj = sizes(1);
     Nk = sizes(3);
     
     % coef apodization
     sigma = a*Nk/4111; %4111 est une valeur de référence pour res = 4 cm-1
-    f_apo = exp(-(sigma*(l)*res).^2);
+    f_apo = exp(-(sigma*l*res).^2);
     
     % distance between two frames
     dl = l(2)-l(1);   
@@ -37,6 +39,11 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a)
     if nargout == 3
         inter_apo = inter_reshaped(Ni*Nj,:)'.*f_apo;%exp(-(sigma*(l)*res).^2);
     end
+    
     S = reshape(S_reshaped,Nj,Ni,size(S_reshaped,2));
+    
+    % on ne garde que la bande spectrale utile entre f2 et f1
+    S = S(:,:,nub>10000/lmax);
+    nub = nub(:,nub>10000/lmax)';
 end
 

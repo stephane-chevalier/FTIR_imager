@@ -1,0 +1,9 @@
+function Abs = compute_abs(Smean,path_bkg);
+%UNTITLED9 Summary of this function goes here
+%   Detailed explanation goes here
+data_bkg = load([path_bkg,'pt/data.mat');
+S_bkg = data.Spectre;
+
+S_bkg_reshape = reshape(
+end
+

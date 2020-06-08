@@ -1,9 +1,9 @@
 function [Scorrected] = fft_with_Mertz(inter_reshaped,f_apo,Ni,Nj)
 % Excute the fft with the phase correction of Mertz
 % Input : Image in 1D
-% Output : the corrested modulus of the interfegramm
+% Output : the corrected modulus of the interfegramm
 
-Scorrected = zeros(Ni*Nj,(length(f_apo)-1)/2);
+Scorrected = zeros(Ni*Nj,round(length(f_apo)/2)-1);
 
     for j = 1:Nj*Ni    
 
