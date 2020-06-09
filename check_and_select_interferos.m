@@ -16,7 +16,7 @@ N_th = round(2/res/v*data_cam.freq); % theoritical number of frame
 ZPD = find(image3D(pos(1),pos(2),:) == max(image3D(pos(1),pos(2),:)),1); % find ZPD
 m_pos = ([1:size(image3D,3)]'-ZPD)*dl; % build the position vector for all the images
 
-image3D_aligned = zeros(size(image3D,1),size(image3D,1),N_th); %prealocating
+image3D_aligned = zeros(size(image3D,1),size(image3D,2),N_th); %prealocating
 
 id_aligned = find(m_pos<1/res & m_pos>-1/res); % find the interesting position
 image3D_aligned(:,:,N_th-length(id_aligned)+1:N_th) = image3D(:,:,id_aligned); % select only the interesting data
