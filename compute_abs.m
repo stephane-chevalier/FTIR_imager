@@ -1,6 +1,7 @@
-function Abs = compute_abs(Smean,path_bkg)
-%UNTITLED9 Summary of this function goes here
-%   Detailed explanation goes here
+function Abs = compute_abs(S,path_bkg)
+%Abs = compute_abs(S,path_bkg)
+%   S : 3D matrix of a IR spectrum (sample)
+% path_back : path to the IR spectrum of the background
 
 disp('Computing the absorbance matrix');
 
@@ -8,16 +9,9 @@ disp('Computing the absorbance matrix');
 data_bkg = load([path_bkg,'pt/data.mat']);
 S_bkg = data_bkg.Spectre;
 
-S_bkg_reshape = reshape(S_bkg,[size(S_bkg,1)*size(S_bkg,2) size(S_bkg,3)]);
-Smean_reshape = reshape(Smean,[size(S_bkg,1)*size(S_bkg,2) size(S_bkg,3)]);
-
-
 for i = 1:size(S_bkg,3)
-    Abs_reshape = Smean_reshape./S_bkg_reshape;
+    Abs(:,:,i) = -log10(imdivide(S(:,:,i),S_bkg(:,:,i)));
 end
-
-Abs = -log10(reshape(Abs_reshape,[size(S_bkg,1) size(S_bkg,2) size(S_bkg,3)]));
-
 
 end
 
