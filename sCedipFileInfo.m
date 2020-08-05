@@ -24,7 +24,7 @@ if(s.m_maxlut==-1)
 end; %if
 fseek(fid, 277, 'bof');
 s.m_specialscale=fread(fid,1,'uint16'); % Special scale (Echelle Speciale)
-scaleunit=fread(fid,10,'char');
+scaleunit=fread(fid,[1 10],'uint8=>char');
 s.m_scalevalue=fread(fid,17,'float');
 if(s.m_specialscale==0)
     s.m_unit='dl';                           % [dl T rad]
@@ -49,10 +49,10 @@ s.m_frameperiode = fread(fid,1,'float'); % frame rate
 s.m_integration =  fread(fid,1,'float'); % integration time
 
 fseek(fid, 563, 'bof');
-s.m_comment=fread(fid,1000,'char');
+s.m_comment=fread(fid,[999 1000],'uint8=>char');
 
 fseek(fid, 1563, 'bof');
-s.m_calibration=fread(fid,100,'char'); % calibration file name
+s.m_calibration=fread(fid,[99 100],'uint8=>char'); % calibration file name
 
 fseek(fid,s.m_MainHeaderSize,'bof'); %skip main header
 fseek(fid,s.m_FrameHeaderSize,'cof'); %skip frame header

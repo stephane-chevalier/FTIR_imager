@@ -43,9 +43,9 @@ s.m_maxval = max(max(s.m_data(1:s.m_cols,2:s.m_rows)));
 fseek (fid, s.m_MainHeaderSize,'bof');
 fseek (fid, (s.m_framepointer-1) * (s.m_FrameSize), 'cof');
 fseek(fid,80,'cof');
-a=fread(fid,4,'char')';
+a=fread(fid,[1 4],'uint8=>char')';
 fseek(fid,76,'cof');
-b=fread(fid,2,'char')';
+b=fread(fid,[1 2],'uint8=>char')';
 t=[a(2) a(1) a(4) a(3) b(1) b(2)];
 s.m_time=t(1)*3600+t(2)*60+t(3)+t(4)/100+t(5)/1000+t(6)/1000000;
 fclose(fid); %close file
