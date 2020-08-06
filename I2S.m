@@ -5,7 +5,7 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     % inter_appo : renvoi le spectre appodizé au pixel Ni,Nj (option)
     %
     % inter : interférogramme (matrice ou vecteur)
-    % l : position du miroir en cm
+    % l : retard optique en cm
     % res : résolution
     % a : paramètre d'appodization (a = 0 si pas d'appodization, a = 10-15
     % sinon)

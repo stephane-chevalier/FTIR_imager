@@ -39,13 +39,13 @@ for n = 1:size(interfero,2)
     plot(l,squeeze(imageplot(px(2),px(1),:)))
 end
 hold off
-xlabel('Différence de chemin optique en cm')
+xlabel('Retard optique en cm')
 ylabel('Intensité en DL')
 title('interfero')
 
 subplot(2,3,5)
 plot(l,squeeze(inter_apo))
-xlabel('Différence de chemin optique en cm')
+xlabel('Retard optique en cm')
 ylabel('Intensité en DL')
 title('Apodization')
 

@@ -3,12 +3,13 @@ function [image3D_aligned,l] = check_and_select_interferos(image3D,v,res,data_ca
 %[image3D_aligned,l] = check_and_select_interferos(image3D,v,res,data_cam)
 % select only the interesting part of the interfero for the fft
 % image3D : 3D image containing the interferos
-% l : mirror position
+% l : optical retardation (cm)
+% v : vitesse optique (cm/s)
 
 disp('Checking and selecting the interfero in the image')
 
 % construction du vecteur position
-dl = v/data_cam.freq; % mirror step (cm)
+dl = v/data_cam.freq; % optical displacement step (cm)
 pos = [round(size(image3D,1)/2) round(size(image3D,2)/2)]; % position du pixel central pour trouver le ZPD
 N_th = round(2/res/v*data_cam.freq); % theoritical number of frame
 
