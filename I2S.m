@@ -27,8 +27,12 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     % On reshape pour gagner en temps de calcul    
     inter_reshaped = reshape(inter,Ni*Nj,Nk);
         
+    % High pass filtering to remove the contineous component
+    [inter_ac] = high_pass_filtering(inter_reshaped,sizes);
+    %inter_ac = inter_reshaped;
+    
     % compute the fft with the phase correction based on Mertz methods
-    S_reshaped = fft_with_Mertz(inter_reshaped,f_apo,Ni,Nj);
+    S_reshaped = fft_with_Mertz(inter_ac,f_apo,Ni,Nj);
     
     % build the frequency vector
     nub = linspace(0,1/dl,length(l));
@@ -37,7 +41,7 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     disp('Calcul fft terminé')
     
     if nargout == 3
-        inter_apo = inter_reshaped(Ni*Nj,:)'.*f_apo;%exp(-(sigma*(l)*res).^2);
+        inter_apo = inter_ac(Ni*Nj,:)'.*f_apo;%exp(-(sigma*(l)*res).^2);
     end
     
     S = reshape(S_reshaped,Nj,Ni,size(S_reshaped,2));
