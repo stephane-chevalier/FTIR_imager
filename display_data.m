@@ -41,13 +41,13 @@ end
 hold off
 xlabel('Retard optique en cm')
 ylabel('Intensité en DL')
-title('interfero')
+title('Interférogramme brut')
 
 subplot(2,3,5)
 plot(l,squeeze(inter_apo))
 xlabel('Retard optique en cm')
 ylabel('Intensité en DL')
-title('Apodization')
+title('Interfero filtré (pass haut) et apodisé')
 
 subplot(2,3,6)
 set(gca, 'Xdir', 'reverse','Xscale','log');
