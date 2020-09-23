@@ -14,12 +14,12 @@ porte([1:3 Nk-3:Nk],1)=0;
 
 
 for j = 1:Nj*Ni
-    inter_ac(j,:) = ifft(fft(inter(j,:)).*porte');
+    inter_ac(j,:) = real(ifft(fft(inter(j,:)).*porte'));
 end
 
 figure(20);
 clf
-plot(1:Nk,squeeze([inter(round(Nk/2),:); inter_ac(round(Nk/2),:)]'))
+plot(1:Nk,squeeze([inter(round(Ni*Nj/2),:); inter_ac(round(Ni*Nj/2),:)]'))
 legend('before filtering','after filtering')
 end
 

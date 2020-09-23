@@ -10,7 +10,7 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     % a : paramètre d'appodization (a = 0 si pas d'appodization, a = 10-15
     % sinon)
     % S : spectrum in the inetresting band (low frequencies are left over)
-    disp('Exécution de la fft avec appodisation')
+    disp('Exécution de la fft avec apodisation')
     
     sizes = size(inter); % taille de la matrice    
     Ni = sizes(2);
@@ -41,7 +41,7 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     disp('Calcul fft terminé')
     
     if nargout == 3
-        inter_apo = inter_ac(Ni*Nj,:)'.*f_apo;%exp(-(sigma*(l)*res).^2);
+        inter_apo = inter_ac(round(Ni*Nj/2),:)'.*f_apo;%exp(-(sigma*(l)*res).^2);
     end
     
     S = reshape(S_reshaped,Nj,Ni,size(S_reshaped,2));
