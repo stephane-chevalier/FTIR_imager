@@ -10,33 +10,16 @@ function [image3D,data_cam,im_therm,temps,fullimage] = chargement_PTW(nom,therm,
 
     
     if isempty(nom)
-     disp('Le fichier n''existe pas,, vérifier le nom')
+     disp('Le fichier n''existe pas, vérifier le nom')
      return
     end
     
     
     disp(['Chargement de ',nom,' en cours'])
-    [~,fullimage,fileinfo] = GetPTWFrame(nom,1);
-    N=fileinfo.m_nframes; %number of frames
+    [temps,image3D,fileinfo,fullimage] = chargement_ptw_sans_interface(nom,x,y);
+    
     data_cam = struct('freq',round(1./fileinfo.m_frameperiode),...
-        'TI',fileinfo.m_integration/1e-6); % load camera settings
-    
-    image3D = zeros(length(y),length(x),N); %prelocating
-    
-    for ii = 1:N
-        [t_temp,temp0,~] = GetPTWFrame(nom,ii);
-        temps(ii,1) = t_temp; % temps absolu lu dans les images            
-                
-        if ~isempty(find(ii == 1:round(N/3):N))
-            disp(['Chargement.... à ',num2str(round(ii/N*100)),'%'])
-        end
-        
-        if nargin > 3
-            image3D(:,:,ii) = temp0(y,x);
-        else
-            image3D(:,:,ii) = temp0;
-        end
-    end
+        'TI',fileinfo.m_integration/1e-6); % load camera settings   
     
     % extrait la thermique et la soustrait  
      if therm == 1 % on enlève la thermique ici
