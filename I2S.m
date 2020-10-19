@@ -28,8 +28,8 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     inter_reshaped = reshape(inter,Ni*Nj,Nk);
         
     % High pass filtering to remove the contineous component
-    [inter_ac] = high_pass_filtering(inter_reshaped,sizes);
-    %inter_ac = inter_reshaped;
+    %[inter_ac] = high_pass_filtering(inter_reshaped,sizes);
+    inter_ac = inter_reshaped;
     
     % compute the fft with the phase correction based on Mertz methods
     S_reshaped = fft_with_Mertz(inter_ac,f_apo,Ni,Nj);
@@ -47,7 +47,7 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     S = reshape(S_reshaped,Nj,Ni,size(S_reshaped,2));
     
     % on ne garde que la bande spectrale utile entre f2 et f1
-    S = S(:,:,nub>10000/lmax);
+    S = S(:,:,nub>10000/lmax)/res; % On divise par la résolution spectrale pour obtenir le spectre en DL/cm-1
     nub = nub(:,nub>10000/lmax)';
 end
 
