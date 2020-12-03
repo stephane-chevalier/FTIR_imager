@@ -19,11 +19,12 @@ porte(round(size(S,3)/2)-pas:round(size(S,3)/2)+pas)=1;
 S_reshape = reshape(S,[size(S,1)*size(S,2) size(S,3)]);
 
 S_clean = zeros(size(S,1)*size(S,2),size(S,3));
-for i = 1:size(S_reshape,1)
-    % low pass the IR spectrum
-    S_clean(i,:)=ifft(ifftshift(fftshift(fft(S_reshape(i,:))).*porte'));
-end
 
+%%
+% low pass the IR spectrum
+n = size(S,3);
+S_clean=ifft(ifftshift(fftshift(fft(S_reshape,n,2),2).*repmat(porte',[size(S,1)*size(S,2) 1]),2),n,2);
+%%
 % reshape to get S_clean
 S_clean = abs(reshape(S_clean,[size(S,1) size(S,2) size(S,3)]));
 
