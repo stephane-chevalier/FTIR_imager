@@ -36,12 +36,16 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     
     % build the frequency vector
     nub = linspace(0,1/dl,length(l));
+    %nub = nub(1:2:round(length(nub)/2));
     nub(round(length(nub)/2):length(nub))=[];  
     
     disp('Calcul fft terminé')
     
+    % compute the interferogram apodized and low filtered for display
     if nargout == 3
-        inter_apo = inter_ac(round(Ni*Nj/2),:)'.*f_apo;%exp(-(sigma*(l)*res).^2);
+        porte=ones(1,Nk);
+        porte(1)=0;
+        inter_apo = ifft(fft(inter_reshaped(round(Ni*Nj/2),:)).*porte)'.*f_apo;
     end
     
     S = reshape(S_reshaped,Nj,Ni,size(S_reshaped,2));
