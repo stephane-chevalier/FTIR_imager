@@ -32,8 +32,8 @@ S_clean = abs(reshape(S_clean,[size(S,1) size(S,2) size(S,3)]));
 if display == 1
     px = round([size(S,1) size(S,2)]/2); % traget the middle pxiel of the image
     figure(10)
-    clf
-    subplot(211)
+    %clf
+    subplot(312)
     set(gca, 'Xdir', 'reverse','Xscale','log');
     hold on
     plot(nub,[squeeze(S(px(1),px(2),:)) squeeze(S_clean(px(1),px(2),:))])
@@ -41,13 +41,20 @@ if display == 1
     xlabel('Wavenumber (cm-1)')
     legend('before cleanning','after fabry pérot interference removing')
     
-    subplot(212)
+    subplot(313)
     f = linspace(0,2/res,size(S,3))-1/res;
     S_plot = abs(squeeze(fftshift(fft(S(px(1),px(2),:)))));
     plot(f*100,[S_plot/max(S_plot) porte])
     ylabel('Normalized spectrum of the IR spectrum')
     xlabel('Wavelength (µm)')
+    drawnow;
 end
+
+
+disp('End of the traitement of this interferogram')
+disp(' ')
+disp(' ')
+
 
 end
 
