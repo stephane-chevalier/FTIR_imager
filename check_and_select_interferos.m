@@ -19,9 +19,23 @@ end
 
 % find the ZPD and the mirror position
 ZPD = find(image3D(pos(1),pos(2),:) == max(image3D(pos(1),pos(2),:)),1); % find ZPD
+figure(10)
+clf
+subplot(311)
+plot(squeeze(image3D(pos(1),pos(2),:)))
+hold on
+plot([ZPD ZPD],[min(squeeze(image3D(pos(1),pos(2),:))) max(squeeze(image3D(pos(1),pos(2),:)))],'--k')
+title('Raw signal used to find the ZPD');
+legend('Interferogram','Position of the ZPD')
+drawnow;
 
 m_pos = linspace(-1/res,1/res,N_th)';  % build the position vector for all the images
 image3D_aligned = zeros(size(image3D,1),size(image3D,2),N_th); %prealocating
+
+disp('-------------------------')
+fprintf('Expected number of frame : %i, \n and position of ZPD : %i.',N_th,ZPD)
+fprintf('\n Note that the position of the ZPD \n should be approximatively %i + number of \n pre-trig images if any.\n',round(N_th/2))
+disp('-------------------------')
 
 %check if there is enough images in the interferogram and replace the data
 if size(image3D,3) < N_th
