@@ -3,9 +3,9 @@ function [Scorrected] = fft_with_Mertz(inter_reshaped,f_apo,Ni,Nj)
 % Input : Image in 1D
 % Output : the corrected modulus of the interfegramm
 
-S_uncorrected = fft(inter_reshaped.*repmat(f_apo',[Ni*Nj 1]),length(f_apo),2);
+S_uncorrected = fft((inter_reshaped-mean(inter_reshaped,2)).*repmat(f_apo',[Ni*Nj 1]),2^13,2);
 
-S_uncorrected = S_uncorrected(:,2:round(length(f_apo)/2)); % on ne prend que la moitié du spectre
+S_uncorrected = S_uncorrected(:,2:2^13/2); % on ne prend que la moitié du spectre
 
 % calcul avec correction de Mertz
 R = real(S_uncorrected);

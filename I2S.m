@@ -30,12 +30,12 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     % High pass filtering to remove the contineous component
     %[inter_ac] = high_pass_filtering(inter_reshaped,sizes);
     inter_ac = inter_reshaped;
-    
+   
     % compute the fft with the phase correction based on Mertz methods
     S_reshaped = fft_with_Mertz(inter_ac,f_apo,Ni,Nj);
     
     % build the frequency vector
-    nub = linspace(0,1/dl,length(l));
+    nub = linspace(0,1/dl,2^13);
     %nub = nub(1:2:round(length(nub)/2));
     nub(round(length(nub)/2):length(nub))=[];  
     
