@@ -8,6 +8,16 @@ function [image3D_aligned,m_pos] = check_and_select_interferos(image3D,v,res,dat
 
 disp('Checking and selecting the interfero in the image')
 
+if v < 0.15
+    disp(' ')
+    disp('/!\--------------------/!\')
+    disp('Vitesse du miroir trop faible')
+    disp('La précision sur sa vitesse n''est plus garantie')
+    disp('Cela conduira à un décallage spectrale')
+    disp('Préférer une mesure en step scan')
+    disp('/!\--------------------/!\')
+    disp(' ')
+end
 % construction du vecteur position
 %dl = v/data_cam.freq; % optical displacement step (cm)
 pos = [round(size(image3D,1)/2) round(size(image3D,2)/2)]; % position du pixel central pour trouver le ZPD
