@@ -1,4 +1,4 @@
-function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
+function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax,N_bit)
     % [S,nub] = I2S(inter,l,res,a)
     % Transforme l'intéro en spectre avec une appodization de type
     % gaussienne : exp(-(sigma*(l)*res).^2)
@@ -32,10 +32,10 @@ function [S,nub,inter_apo] = I2S(inter,l,res,a,lmax)
     inter_ac = inter_reshaped;
    
     % compute the fft with the phase correction based on Mertz methods
-    S_reshaped = fft_with_Mertz(inter_ac,f_apo,Ni,Nj);
+    S_reshaped = fft_with_Mertz(inter_ac,f_apo,Ni,Nj,N_bit);
     
     % build the frequency vector
-    nub = linspace(0,1/dl,2^13);
+    nub = linspace(0,1/dl,2^N_bit);
     %nub = nub(1:2:round(length(nub)/2));
     nub(round(length(nub)/2):length(nub))=[];  
     
