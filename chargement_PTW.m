@@ -1,5 +1,5 @@
 function [image3D,data_cam,im_therm,temps,fullimage] = chargement_PTW(nom,therm,N_therm,x,y)
-    % [image3D,temps] = chargement_PTW(nom,x,y)
+    % [image3D,temps] = chargement_PTW(nom,therm,N_therm,x,y)
     % La sortie temps est optionnelle ainsi que les entrée x et y.
     %
     % Charge des stacks d'image PTW en matrice 3D (x,y,t)
